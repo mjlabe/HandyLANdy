@@ -1,148 +1,98 @@
 # HandyLANdy
 
-An open-source, iOS-first LAN monitor for Bambu Lab printers, built with Expo SDK 58, React Native 0.88 and TypeScript. The shared React Native UI also targets Android; Android native builds and printer protocols have not been verified on a physical device.
+A React Native app for monitoring Bambu Lab printers over a local network. Built with Expo SDK 58 and TypeScript, with iOS as the first target.
 
-HandyLANdy is a foreground monitoring app: save a printer, connect on your local network, and view its camera, job progress, temperatures, fans and AMS data when the printer reports them. Demo mode provides sample data without a printer. There is no Bambu cloud login, remote relay, background monitoring, print upload or printer-control workflow. No real printer hardware has been tested with this implementation yet; model and firmware compatibility must be checked on your own printer.
+View job progress, temperatures, fans, AMS data, and the camera for a saved printer. Connections run in the foreground. Demo mode uses labeled sample data. Cloud accounts, printer controls, print uploads, and background notifications are outside the current scope.
 
-## Run locally on iOS
+## Development
 
-Use a custom development build. Expo Go does not contain the native TCP or VLC libraries required for real printer connections and video.
-
-Prerequisites:
-
-- macOS with full Xcode installed, opened once, and selected as the active developer directory. This workspace uses Xcode 27.
-- An iOS simulator runtime installed through Xcode Settings > Components, or a trusted physical iPhone/iPad with Developer Mode enabled.
-- Node.js 22.13 or newer, npm, Make, and CocoaPods (tested with 1.16.2).
-- Network access for npm dependencies, Expo's agent CLI, and CocoaPods/native framework downloads on first build.
+For local iOS builds, install macOS, Xcode with an iOS simulator runtime, Node.js 22.13+, npm, Make, and CocoaPods. Local builds have been exercised with Xcode 27.0 and CocoaPods 1.16.2. Allow at least 10 GB of free disk space for native dependencies and build outputs.
 
 ```sh
 make setup
 make ios-sim
 ```
 
-`setup` checks the local Xcode and CocoaPods tools, then runs `npm ci`. It reports missing prerequisites; it does not install operating-system software or accept Xcode licenses for you. The first native build generates the iOS project, installs pods, compiles the development client, and starts Metro. Later JavaScript changes can reload through Metro; native dependency/configuration changes require rebuilding.
+`make setup` checks prerequisites and runs `npm ci`. Build targets use the installed Expo CLI, generate the native project, install pods, and compile with Xcode. Run targets also install the app and start Metro. Expo Go cannot load the native TCP and VLC libraries; use a development build.
 
-Select a simulator by exact name or UDID. A shutdown simulator is valid: Expo boots it when launching. Without a selector, HandyLANdy prefers a booted simulator, then an available iPhone simulator.
-
-```sh
-make ios-sim SIMULATOR='iPhone 17'
-make ios-sim SIMULATOR='YOUR-SIMULATOR-UDID'
-```
-
-To list installed simulators:
-
-```sh
-xcrun simctl list devices available
-```
-
-Physical devices require an Apple development signing identity and provisioning profile for `org.handylandy.app`. Add your Apple account in Xcode Settings > Accounts, connect and trust the device, and enable Developer Mode. Set `ios.appleTeamId` in Expo app configuration or supply `DEVELOPMENT_TEAM` on the Make command before the first device build. Xcode is allowed to update provisioning profiles using your configured Apple account. Your Apple team may require changing the bundle identifier to one it can provision. Local builds do not need an Expo/EAS account.
-
-```sh
-make ios-device
-make ios-device DEVICE='My iPhone'
-make ios-device DEVICE='YOUR-DEVICE-UDID'
-make ios-device DEVICE='YOUR-DEVICE-UDID' DEVELOPMENT_TEAM='AB12CD34EF'
-```
-
-The device target auto-selects only when exactly one available physical iOS device is connected. With multiple devices, supply its exact name or UDID. `xcrun xcdevice list` shows available physical devices and identifiers.
-
-## Build without launching
-
-These targets finish after native compilation. They do not boot a simulator, install/launch an app, or start a persistent Metro server. The default `Release` configuration bundles JavaScript into the app; `CONFIGURATION=Debug` builds a development binary that needs Metro (`make start`) when run.
-
-```sh
-make build-ios-sim
-make build-ios-device DEVELOPMENT_TEAM='AB12CD34EF'
-make build-ios-sim CONFIGURATION=Debug
-```
-
-Device compilation still requires valid signing assets for the configured bundle identifier. `DEVELOPMENT_TEAM` overrides the team for compile-only device builds; it does not provision an account or create signing credentials. The resulting `.app` is an Xcode build product, not an App Store archive or an exported `.ipa`.
-
-| Target | Default app output |
+| Command | Purpose |
 | --- | --- |
-| `build-ios-sim` | `build/ios-simulator/Build/Products/Release-iphonesimulator/HandyLANdy.app` |
-| `build-ios-device` | `build/ios-device/Build/Products/Release-iphoneos/HandyLANdy.app` |
+| `make start` | Start Metro for an installed development build |
+| `make ios-sim SIMULATOR='iPhone 17'` | Build and run on a simulator by name or UDID |
+| `make ios-device DEVICE='My iPhone' DEVELOPMENT_TEAM='AB12CD34EF'` | Build and run on a connected device |
+| `make build-ios-sim` | Build a simulator app without launching |
+| `make build-ios-device DEVELOPMENT_TEAM='AB12CD34EF'` | Build a signed device app without launching |
+| `make check` | Run TypeScript, ESLint, and tests |
+| `make icons` | Generate PNG icons from `assets/icon.svg` |
 
-For Debug builds, replace `Release` in those paths with `Debug`. Optional `SIMULATOR`/`DEVICE` selectors also work for compile-only targets; without them, Xcode uses a generic destination. Run targets use the same local Xcode intermediates, then pass the exact compiled app to Expo for installation and launch.
+Use `make help` for all targets. List simulators with `xcrun simctl list devices available` and physical devices with `xcrun xcdevice list`. Without a selector, run targets prefer a booted simulator or require a single connected physical device.
 
-Native projects use Expo Continuous Native Generation and are ignored by git. Build commands explicitly use `prebuild --no-clean`; they do not delete your generated native projects. Change native configuration through Expo app config/config plugins, then rebuild. Keep custom source out of generated `ios/` and `android/` folders. Do not run build targets concurrently against the same generated native project.
+Device builds require a trusted iPhone/iPad with Developer Mode enabled and an Apple signing identity configured in Xcode. Supply `DEVELOPMENT_TEAM` or set `ios.appleTeamId` in `app.json`. The build permits Xcode to update provisioning profiles. Change the bundle identifier if your team cannot provision `org.handylandy.app`. An Expo/EAS account is not required for local builds.
 
-Allow at least 10 GB of free disk space for the initial iOS dependencies and build intermediates. Normal targets preserve these intermediates for faster subsequent builds.
+Build-only targets default to Release and include the JavaScript bundle. Run targets default to Debug. Override either with `CONFIGURATION=Debug` or `CONFIGURATION=Release`. Debug apps need Metro when launched.
 
-Simulator builds use ad-hoc signing to preserve the entitlements required by Keychain/SecureStore. They do not need an Apple developer account. Disabling code signing entirely can make profile saves fail with a missing-entitlement error.
+Build products are under `build/ios-simulator/Build/Products/` or `build/ios-device/Build/Products/`, in the configuration's platform directory. They are `.app` bundles, not App Store archives or exported `.ipa` files. Simulator builds use ad-hoc signing to preserve Keychain entitlements without an Apple developer account.
 
-## Connect a printer
+Native projects and build outputs are generated and ignored. Update native configuration through `app.json` or config plugins, then rebuild. Build targets use non-destructive prebuilds; keep custom code out of `ios/` and `android/`, and do not run native builds concurrently in this checkout.
 
-1. Enable LAN access/LAN-only mode on the printer as required by its firmware. Keep the phone and printer on a reachable local network and allow iOS Local Network permission.
-2. Add its friendly name, local IPv4 address/hostname, serial number and LAN access code. Choose the camera protocol that matches your printer. The UI suggests RTSPS for X1/P2/H2 families and authenticated TLS JPEG for P1/A1 families; you can override the transport. Firmware/model behavior varies and these suggestions are not hardware-tested.
-3. Open the printer to connect. MQTT telemetry uses TLS port `8883`; camera paths use RTSPS port `322` or JPEG port `6000`. Permit those connections through your local firewall. Guest Wi-Fi/client isolation and a printer IP that has changed can prevent connections.
-4. If your printer uses a self-signed certificate, enable the profile's explicit certificate-trust option only for a printer you trust. Disabling certificate verification reduces server-identity protection on that connection.
+## Connecting a printer
 
-Profiles and connection preferences are stored locally with AsyncStorage. LAN access codes use native `expo-secure-store` (Keychain/Android Keystore); they are kept out of profile metadata. Web/demo mode cannot save real printer credentials. Camera URLs necessarily carry the printer's authentication at runtime: keep access codes and live stream URLs out of screenshots, issue reports and logs.
+1. Keep the phone and printer on a reachable local network. Enable LAN access and LAN liveview as required by the printer firmware, and grant iOS Local Network permission. Some firmware requires LAN Only or Developer Mode for third-party access.
+2. Enter the printer IP or hostname, serial number, and LAN access code in **Add printer**.
+3. Choose a model and camera transport. The suggested transports are listed below and can be overridden.
+4. If the printer uses a self-signed certificate, enable the profile's certificate option. This encrypts the connection without verifying the printer's identity; use it only for a printer you trust.
 
-Connections and camera sessions are intended for the active foreground screen and stop when the app backgrounds. Missing printer fields remain unavailable; demo values should not be interpreted as readings from your printer.
+MQTT uses TLS port **8883**. Cameras use RTSPS port **322** or TLS JPEG port **6000**. Guest Wi-Fi isolation, VPNs, firewall rules, and changed printer IPs can prevent connections.
 
-## Compatibility
+Profiles are stored locally with AsyncStorage; access codes use Keychain/Android Keystore through SecureStore. Web mode cannot save real printer credentials. Keep access codes and authenticated stream URLs out of logs, screenshots, and issue reports.
 
-These are protocol profiles, not claims of tested model/firmware support.
+## Compatibility and verification
 
-| Printer family | Suggested camera | Physical printer status |
-| --- | --- | --- |
-| X1 / X1 Carbon / X1E | RTSPS, port 322 | Unverified |
-| P1P / P1S | TLS JPEG, port 6000 | Unverified |
-| A1 / A1 Mini | TLS JPEG, port 6000 | Unverified |
-| P2S | RTSPS, port 322 | Unverified |
-| H2D / H2S / H2C | RTSPS, port 322 | Unverified |
+These model profiles suggest a transport; they do not establish hardware compatibility.
 
-MQTT uses TLS port 8883 with an explicitly entered serial number for all profiles. Other models can use a compatible profile with the camera transport override, but are also unverified. Dual-nozzle-specific telemetry is not normalized in this version. Android native transport/camera interoperability remains unverified. The Android socket library checks the certificate chain when verification is enabled but does not independently enable TLS hostname verification; iOS uses the connection hostname.
+| Printer family | Suggested camera |
+| --- | --- |
+| X1 / X1 Carbon / X1E | RTSPS |
+| P1P / P1S | TLS JPEG |
+| A1 / A1 Mini | TLS JPEG |
+| P2S | RTSPS |
+| H2D / H2S / H2C | RTSPS |
+
+The iOS Debug app has been built and run in the simulator. Keychain operations and native MQTT/TLS JPEG connections have been exercised with synthetic loopback fixtures. Physical printers, real RTSPS streams, physical-device signing, and the Android runtime remain unverified. Dual-nozzle-specific telemetry is not normalized.
+
+The Android socket dependency validates certificate chains when verification is enabled but does not independently enable TLS hostname verification; iOS uses the connection hostname. React Native Directory marks the TCP and VLC wrappers as untested on the New Architecture, and the VLC wrapper's vector-icons dependency lacks metadata.
+
+## Contributing
+
+Keep changes focused and follow the existing module boundaries:
+
+| Directory | Responsibility |
+| --- | --- |
+| `src/app/` | Expo Router routes and navigation |
+| `src/screens/` | Screen components |
+| `src/components/` | Shared UI |
+| `src/printer/` | Protocol parsing, transports, and sessions |
+| `src/camera/` | Camera rendering |
+| `src/state/` | Selection, connection lifecycle, and demo state |
+| `src/storage/` | Profile metadata and credentials |
+| `scripts/` | Local builds, asset generation, and dependency patches |
+| `tests/` | Node tests, run with `tsx` |
+
+Run `make check` before submitting a change. CI runs the same checks on Linux. Tests cover protocol framing, partial reports, connection lifecycle, storage failures, build arguments, and failure propagation. The additional `test:native` pass resolves MQTT with React Native package conditions. These checks do not replace a native build or hardware testing.
+
+Add regression coverage for protocol, storage, or lifecycle changes. For compatibility reports, include the printer model, firmware, platform, and camera transport. State whether evidence comes from a fixture, simulator, or physical printer; remove credentials before sharing logs.
 
 ## Dependency patches
 
-`npm ci` applies two small, version-checked patches automatically. They fail with a review message if upstream source locations change:
+`npm ci` applies two version-checked patches. Both fail if upstream source changes and needs review:
 
-- `scripts/patch-vlc.mjs` disables native camera diagnostics that can expose authenticated URLs and ensures iOS VLC stream errors emit a generic error event, even without a VLC dialog. Playback itself still uses the upstream native library.
-- `scripts/patch-expo.mjs` omits an optional development-launcher toolbar decoration in `expo-dev-launcher` 58.0.21. Its original Swift compiler guard references an iOS 27.1 API unavailable in Xcode 27.0's SDK. This only changes the launcher's optional toolbar appearance.
+- `scripts/patch-vlc.mjs` disables credential-bearing native diagnostics and surfaces generic iOS playback errors from `react-native-vlc-media-player` 1.0.98.
+- `scripts/patch-expo.mjs` omits an optional toolbar decoration in `expo-dev-launcher` 58.0.21 that references an iOS 27.1 API unavailable in Xcode 27.0.
 
-Review and remove the corresponding patch when upgrading to an upstream version that fixes the issue. No custom Swift/Kotlin application module is required by this implementation.
+Review these patches when upgrading their dependencies and remove them when upstream fixes are available.
 
-## Checks and project layout
+## License
 
-```sh
-make check
-# Equivalent: npm run check
-node --import tsx --test tests/build-workflow.test.ts
-npm run test:native
-```
+HandyLANdy is [MIT licensed](LICENSE) and independent of Bambu Lab. [PandaBeFree](https://github.com/MiguelSchulz/panda-be-free) is the MIT-licensed LAN protocol reference; no source files were copied.
 
-GitHub Actions runs the JavaScript/TypeScript checks on Linux. The automated tests exercise protocol framing/parsing, status normalization, connection lifecycle, storage behavior and build-command argument/failure handling. `test:native` additionally resolves MQTT using the React Native package conditions to catch dependency-export differences. These checks do not establish physical printer compatibility, video decoder behavior, Apple signing, or a successful native build.
-
-Application code lives under `src/`; `src/printer/` contains printer protocols/session logic, `src/storage/` separates profile metadata and credentials, and `src/camera/` contains camera integration. Local iOS orchestration is in `scripts/ios.mjs`. Run `make help` for all commands.
-
-### Local verification
-
-The iOS Debug app was built and launched through the Makefile with Xcode 27.0
-on an iPhone 17 simulator. Native Keychain save/reload/deletion, authenticated
-MQTT over TLS, and authenticated TLS JPEG decoding were exercised against
-temporary loopback-only test servers. The dashboard displayed their synthetic
-job, temperature, fan, and AMS readings. Backgrounding closed both intended
-printer connections; returning reconnected them. The disposable profile,
-credential, and test servers were removed afterward.
-
-Setup validation, demo actions, and fullscreen navigation were exercised by
-calling the app's React handlers through Hermes and inspecting actual simulator
-screenshots. These checks did not exercise physical taps, gestures, the software
-keyboard, or VoiceOver. No physical printer, physical-device signing flow,
-Android runtime, or real RTSPS stream has been verified.
-
-Expo Doctor passed 19 of 20 checks. Its remaining React Native Directory check
-flags `react-native-tcp-socket` and `react-native-vlc-media-player` as untested
-on the New Architecture, and reports missing metadata for the wrapper's
-`react-native-vector-icons` dependency. Those diagnostics are retained rather
-than suppressed. Native iOS MQTT/JPEG fixture testing does not establish all
-camera, platform, or firmware compatibility.
-
-## License and acknowledgments
-
-HandyLANdy source is [MIT licensed](LICENSE). [PandaBeFree](https://github.com/MiguelSchulz/panda-be-free) is an MIT-licensed protocol/reference project acknowledged for its LAN monitoring work. HandyLANdy is independent of Bambu Lab and VideoLAN.
-
-Dependency licenses are separate from HandyLANdy's MIT license. In particular, the MIT-licensed VLC React Native wrapper brings in MobileVLCKit/libVLC, which have LGPL terms and additional bundled-component notices. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for versions, upstream source/license links, and distribution requirements to review before shipping binaries.
+Dependency licenses are separate. The VLC wrapper includes MobileVLCKit/libVLC under LGPL terms. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for attribution, source links, and binary distribution requirements.

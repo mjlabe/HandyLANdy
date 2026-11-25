@@ -1,9 +1,8 @@
 import { useColorScheme } from 'react-native';
 
-export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 } as const;
+export const spacing = { xs: 4, sm: 8, md: 16, lg: 24 } as const;
 export const radius = { sm: 6, md: 10, lg: 14, full: 999 } as const;
 export const typography = {
-  hero: { fontSize: 30, fontWeight: '600', letterSpacing: -0.8 },
   title: { fontSize: 22, fontWeight: '600', letterSpacing: -0.3 },
   heading: { fontSize: 17, fontWeight: '600' },
   body: { fontSize: 14, fontWeight: '400' },
@@ -25,11 +24,8 @@ export function useTheme() {
     accentSoft: dark ? '#102A19' : '#EAF7EE',
     onAccent: '#FFFFFF',
     danger: dark ? '#FF9B92' : '#BC3931',
-    warning: dark ? '#EDCF85' : '#805E18',
     onCamera: '#FFFFFF',
     cameraBackground: '#101010',
-    cameraAccent: '#30D468',
     cameraOverlay: 'rgba(0, 0, 0, 0.48)',
-    grid: '#464646',
   };
 }

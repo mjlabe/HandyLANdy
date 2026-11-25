@@ -70,7 +70,7 @@ test('compile-only workflow prebuilds without cleaning, installs pods and never 
   };
   await runWorkflow(parseOptions(['build', 'simulator'], {}), { runner, cwd: '/project with spaces' });
   assert.deepEqual(calls.map(call => call.command), ['npx', 'pod', 'xcodebuild']);
-  assert.deepEqual(calls[0].args, ['--yes', '@expo/agent-cli@latest', 'prebuild', '--platform', 'ios', '--no-clean', '--no-install']);
+  assert.deepEqual(calls[0].args, ['--no-install', 'expo', 'prebuild', '--platform', 'ios', '--no-clean', '--no-install']);
   assert.equal(calls[1].cwd, '/project with spaces/ios');
   assert.deepEqual(calls[1].args, ['install']);
 });
@@ -86,7 +86,7 @@ test('run workflow compiles a shutdown simulator app locally before passing its 
   assert.deepEqual(calls.map(call => call.command), ['npx', 'pod', 'xcrun', 'xcodebuild', 'npx']);
   assert.deepEqual(calls[3].args, buildCommand(parseOptions(['run', 'simulator'], {}), '/project', 'PHONE-ID').args);
   assert.equal(launch.command, 'npx');
-  assert.deepEqual(launch.args, ['--yes', '@expo/agent-cli@latest', 'run:ios', '--no-install', '--configuration', 'Debug', '--device', 'PHONE-ID', '--binary', '/project/build/ios-simulator/Build/Products/Debug-iphonesimulator/HandyLANdy.app']);
+  assert.deepEqual(launch.args, ['--no-install', 'expo', 'run:ios', '--no-install', '--configuration', 'Debug', '--device', 'PHONE-ID', '--binary', '/project/build/ios-simulator/Build/Products/Debug-iphonesimulator/HandyLANdy.app']);
 });
 
 

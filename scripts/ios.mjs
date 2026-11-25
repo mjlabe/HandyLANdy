@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const expo = ['--yes', '@expo/agent-cli@latest'];
+const expo = ['--no-install', 'expo'];
 const usage = 'Usage: node scripts/ios.mjs <run|build> <simulator|device>';
 
 /** Resolve Make's exported variables without interpolating them into a shell.

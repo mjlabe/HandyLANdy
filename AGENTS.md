@@ -20,6 +20,11 @@
 
 ## Code style and scope
 
+- Keep this public repository small and approachable: readable code, direct copy, and documentation that helps someone build, debug, or contribute.
+- Do not add assistant plans, session transcripts, progress reports, marketing slogans, or speculative architecture to the repository.
+- Format JSX and control flow for review. Do not compress components or multiple statements into long single lines.
+- Add dependencies, wrappers, configuration, and shared abstractions only for a current, concrete need. Remove unused code instead of keeping scaffolding for possible features.
+- Contributor commands must use the project's installed tools and locked dependencies. Do not require AI-specific tooling or download an unpinned CLI during normal builds.
 - Prefer minimal, focused edits. Follow existing naming, file layout, and component conventions.
 - Do not perform unrelated refactors, restructure working modules, or replace dependencies without a concrete need within the requested task.
 - Add or change comments and documentation only when requested or necessary to explain the authorized change, public behavior, setup, or a non-obvious constraint.

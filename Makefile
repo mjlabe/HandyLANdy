@@ -15,7 +15,7 @@ setup: ## Check local iOS prerequisites and install locked npm dependencies
 	node scripts/setup.mjs
 
 start: ## Start Metro for a development build
-	npx --yes @expo/agent-cli@latest start --dev-client
+	npm run start
 
 ios-sim: ## Build, install and run on an iOS simulator (optional SIMULATOR=name-or-UDID)
 	node scripts/ios.mjs run simulator
