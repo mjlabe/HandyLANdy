@@ -116,9 +116,8 @@ export default function SettingsScreen() {
       <Section style={{ gap: spacing.sm }}>
         <Label variant="heading">About</Label>
         <Label variant="caption" style={{ color: theme.muted }}>
-          Version 0.1.0 · Open source · MIT license{'\n'}Independent community project. Not
-          affiliated with Bambu Lab.{'\n'}iOS first. Android printer compatibility needs hardware
-          validation.
+          Version 0.1.0 · Open source · MIT license{'\n'}Independent community project.
+          Reference: PandaBeFree (MIT), © 2026 PandaBeFree Contributors.
         </Label>
         <Action
           title="PandaBeFree reference ↗"
@@ -127,11 +126,6 @@ export default function SettingsScreen() {
             void Linking.openURL('https://github.com/MiguelSchulz/panda-be-free');
           }}
         />
-        <Label variant="caption" style={{ color: theme.muted }}>
-          Protocol reference: PandaBeFree (MIT), © 2026 PandaBeFree Contributors. Networking:
-          MQTT.js and react-native-tcp-socket (MIT). Camera: react-native-vlc-media-player (MIT),
-          MobileVLCKit / libVLC (LGPL). Full notices and source links: THIRD_PARTY_NOTICES.md.
-        </Label>
       </Section>
     </Screen>
   );

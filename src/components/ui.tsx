@@ -1,5 +1,5 @@
 import { Button, Host, Text as NativeText } from '@expo/ui';
-import { frame } from '@expo/ui/swift-ui/modifiers';
+import { contentShape, frame, padding, shapes } from '@expo/ui/swift-ui/modifiers';
 import type { PropsWithChildren } from 'react';
 import {
   ActivityIndicator,
@@ -77,6 +77,7 @@ export function Action({
   testID?: string;
 }) {
   const theme = useTheme();
+  const ios = Platform.OS === 'ios';
   return (
     <Host
       matchContents={{ vertical: true }}
@@ -90,15 +91,22 @@ export function Action({
         variant="text"
         style={{
           width: '100%',
-          paddingVertical: 12,
-          paddingHorizontal: spacing.md,
+          paddingVertical: ios ? 0 : 12,
+          paddingHorizontal: ios ? 0 : spacing.md,
           borderRadius: radius.sm,
           backgroundColor: secondary ? theme.control : theme.accent,
         }}
       >
         <NativeText
+          // SwiftUI hit-tests the label, so its padding and content shape belong here.
           modifiers={
-            Platform.OS === 'ios' ? [frame({ maxWidth: Infinity, alignment: 'center' })] : undefined
+            ios
+              ? [
+                  padding({ vertical: 12, horizontal: spacing.md }),
+                  frame({ minHeight: 44, maxWidth: Infinity, alignment: 'center' }),
+                  contentShape(shapes.rectangle()),
+                ]
+              : undefined
           }
           textStyle={{
             fontSize: 14,
