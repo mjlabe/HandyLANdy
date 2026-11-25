@@ -6,8 +6,14 @@ import type { SessionTransport, TransportEvents } from './session-core';
 import type { TlsSocket, TlsSocketFactory } from './tls-types';
 import type { PrinterProfile } from './types';
 import { ensureMqttRuntime } from './runtime';
+import { connectionError } from './connection-error';
 
-export function createMqttTransport(profile: PrinterProfile, accessCode: string, events: TransportEvents, createSocket: TlsSocketFactory): SessionTransport {
+export function createMqttTransport(
+  profile: PrinterProfile,
+  accessCode: string,
+  events: TransportEvents,
+  createSocket: TlsSocketFactory,
+): SessionTransport {
   let disposed = false;
   let socket: TlsSocket | undefined;
   let acquiredStream: ReturnType<typeof createTlsDuplex> | undefined;
@@ -17,13 +23,29 @@ export function createMqttTransport(profile: PrinterProfile, accessCode: string,
     disposed = true;
     // Startup may stop between resource acquisitions. A teardown failure must
     // not prevent the remaining resources from being released.
-    const attempt = (cleanup: () => void) => { try { cleanup(); } catch {} };
-    attempt(() => { acquiredClient?.end(true); });
-    attempt(() => { acquiredStream?.destroy(); });
-    attempt(() => { socket?.setTimeout(0); });
-    attempt(() => { socket?.removeAllListeners(); });
-    attempt(() => { socket?.on('error', () => {}); });
-    attempt(() => { socket?.destroy(); });
+    const attempt = (cleanup: () => void) => {
+      try {
+        cleanup();
+      } catch {}
+    };
+    attempt(() => {
+      acquiredClient?.end(true);
+    });
+    attempt(() => {
+      acquiredStream?.destroy();
+    });
+    attempt(() => {
+      socket?.setTimeout(0);
+    });
+    attempt(() => {
+      socket?.removeAllListeners();
+    });
+    attempt(() => {
+      socket?.on('error', () => {});
+    });
+    attempt(() => {
+      socket?.destroy();
+    });
   }
   try {
     ensureMqttRuntime();
@@ -36,35 +58,55 @@ export function createMqttTransport(profile: PrinterProfile, accessCode: string,
     const MqttClient = ClientImplementation as unknown as typeof ClientConstructor;
     const client = new MqttClient(() => stream, {
       // Binary password also avoids mqtt-packet's optional writeString diagnostics.
-      username: 'bblp', password: Buffer.from(accessCode, 'ascii'),
-      protocolVersion: 4, clean: true,
+      username: 'bblp',
+      password: Buffer.from(accessCode, 'ascii'),
+      protocolVersion: 4,
+      clean: true,
       clientId: `handylandy_${Math.random().toString(16).slice(2, 14)}`,
-      keepalive: 20, connectTimeout: 15000,
-      reconnectPeriod: 0, resubscribe: false, queueQoSZero: false,
-      manualConnect: true, timerVariant: 'native',
+      keepalive: 20,
+      connectTimeout: 15000,
+      reconnectPeriod: 0,
+      resubscribe: false,
+      queueQoSZero: false,
+      manualConnect: true,
+      timerVariant: 'native',
       // MQTT.js otherwise logs the full CONNECT packet under DEBUG=mqttjs:*.
       log: () => {},
     });
     acquiredClient = client;
-    client.on('connect', () => { if (!disposed) events.connected(); });
-    client.on('message', (topic, payload) => {
-      if (!disposed && payload.length <= 1024 * 1024) events.message(topic, payload.toString('utf8'));
+    client.on('connect', () => {
+      if (!disposed) events.connected();
     });
-    client.on('error', (error) => { if (!disposed) events.error(error); });
-    client.on('close', () => { if (!disposed) events.closed(); });
+    client.on('message', (topic, payload) => {
+      if (!disposed && payload.length <= 1024 * 1024)
+        events.message(topic, payload.toString('utf8'));
+    });
+    client.on('error', (error) => {
+      if (!disposed) events.error(error);
+    });
+    client.on('close', () => {
+      if (!disposed) events.closed();
+    });
     client.connect();
     return {
       subscribe(topic, callback) {
         client.subscribe(topic, { qos: 0 }, (error, granted) => {
           if (disposed) return;
-          callback(error ?? (granted?.length && granted.every((item) => item.qos !== 128) ? undefined : new Error('Printer subscription rejected.')));
+          callback(
+            error ??
+              (granted?.length && granted.every((item) => item.qos !== 128)
+                ? undefined
+                : new Error('Printer subscription rejected.')),
+          );
         });
       },
-      publish(topic, payload, callback) { if (!disposed) client.publish(topic, payload, { qos: 0, retain: false }, callback); },
+      publish(topic, payload, callback) {
+        if (!disposed) client.publish(topic, payload, { qos: 0, retain: false }, callback);
+      },
       close: release,
     };
-  } catch {
+  } catch (error) {
     release();
-    throw new Error('Printer MQTT connection could not start. Check the native development build and try reconnecting.');
+    throw connectionError(error, 'startup');
   }
 }

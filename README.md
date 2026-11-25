@@ -40,7 +40,7 @@ Native projects and build outputs are generated and ignored. Update native confi
 1. Keep the phone and printer on a reachable local network. Enable LAN access and LAN liveview as required by the printer firmware, and grant iOS Local Network permission. Some firmware requires LAN Only or Developer Mode for third-party access.
 2. Enter the printer IP or hostname, serial number, and LAN access code in **Add printer**.
 3. Choose a model and camera transport. The suggested transports are listed below and can be overridden.
-4. If the printer uses a self-signed certificate, enable the profile's certificate option. This encrypts the connection without verifying the printer's identity; use it only for a printer you trust.
+4. Review the certificate option. Self-signed certificates are allowed by default for new printers; you can disable this in the profile. Traffic stays encrypted, but the printer's identity is not verified while this option is enabled. The setting applies only to that printer.
 
 MQTT uses TLS port **8883**. Cameras use RTSPS port **322** or TLS JPEG port **6000**. Guest Wi-Fi isolation, VPNs, firewall rules, and changed printer IPs can prevent connections.
 
@@ -58,7 +58,7 @@ These model profiles suggest a transport; they do not establish hardware compati
 | P2S | RTSPS |
 | H2D / H2S / H2C | RTSPS |
 
-The iOS Debug app has been built and run in the simulator. Keychain operations and native MQTT/TLS JPEG connections have been exercised with synthetic loopback fixtures. Physical printers, real RTSPS streams, physical-device signing, and the Android runtime remain unverified. Dual-nozzle-specific telemetry is not normalized.
+The iOS Debug app has been built and run in the simulator. An A1 has supplied live MQTT telemetry over TLS; its firmware version was not recorded. Keychain operations and TLS JPEG decoding have also been exercised with synthetic loopback fixtures. Real camera streams, other printer models, physical-device signing, and the Android runtime remain unverified. Dual-nozzle-specific telemetry is not normalized.
 
 The Android socket dependency validates certificate chains when verification is enabled but does not independently enable TLS hostname verification; iOS uses the connection hostname. React Native Directory marks the TCP and VLC wrappers as untested on the New Architecture, and the VLC wrapper's vector-icons dependency lacks metadata.
 

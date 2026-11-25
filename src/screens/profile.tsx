@@ -40,7 +40,7 @@ export default function ProfileScreen() {
       serial: '',
       model: 'X1 Carbon',
       cameraProtocol: 'rtsps',
-      trustSelfSigned: false,
+      trustSelfSigned: true,
     },
   );
   const [accessCode, setAccessCode] = useState('');
@@ -201,6 +201,9 @@ export default function ProfileScreen() {
         {field('name', 'Printer name', 'Workshop printer')}
         {field('host', 'IP address or hostname', '192.168.1.42')}
         {field('serial', 'Serial number', 'Printer serial number')}
+        <Label variant="caption" style={{ color: theme.muted }}>
+          The serial number identifies the printer’s MQTT status topics.
+        </Label>
         {field(
           'accessCode',
           'LAN access code',
@@ -225,7 +228,7 @@ export default function ProfileScreen() {
             }
           >
             {models.map((model) => (
-              <Picker.Item key={model} label={`${model} · unverified`} value={model} />
+              <Picker.Item key={model} label={model} value={model} />
             ))}
           </Picker>
         </Host>
@@ -244,8 +247,7 @@ export default function ProfileScreen() {
           </Picker>
         </Host>
         <Label variant="caption" style={{ color: theme.muted }}>
-          The model suggests a camera transport. You can override it for your printer. All model
-          profiles are unverified on physical hardware.
+          The model suggests a camera transport. You can override it for your printer.
         </Label>
       </Section>
       <Section>
@@ -261,9 +263,9 @@ export default function ProfileScreen() {
           />
         </Host>
         <Label variant="caption" style={{ color: theme.muted }}>
-          Bambu printers normally use self-signed TLS certificates. Enabling this allows an
-          encrypted connection without verifying this printer’s identity. This choice applies only
-          to this saved printer.
+          Enabled by default for new printers because Bambu printers normally use self-signed TLS
+          certificates. This allows an encrypted connection without verifying this printer’s
+          identity. Applies only to this saved printer.
         </Label>
       </Section>
       {failure && <Notice error>{failure}</Notice>}
