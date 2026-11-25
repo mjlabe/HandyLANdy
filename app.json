@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "HandyLANdy",
+    "slug": "handylandy",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/images/icon.png",
+    "scheme": "handylandy",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "org.handylandy.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "HandyLANdy connects to your Bambu printer on your local network for status and camera monitoring."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#00AE42",
+        "foregroundImage": "./assets/images/splash-icon.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "org.handylandy.app",
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#00AE42",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 80
+        }
+      ],
+      "expo-secure-store",
+      "react-native-vlc-media-player",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

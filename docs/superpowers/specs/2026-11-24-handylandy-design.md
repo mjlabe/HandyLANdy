@@ -1,6 +1,6 @@
 # HandyLANdy first release design
 
-Status: approved by the user on 2026-11-24; implementation in progress.
+Status: implementation delivered; local iOS and fixture verification are recorded in README.md. Physical printer, real RTSPS, physical-device signing, and Android verification remain outstanding.
 
 ## Objective and confirmed requirements
 
